@@ -10,10 +10,25 @@ const COMPARISON_OPERATORS = {
   exclude: "$nin"
 };
 
+const FIELD_UPDATE_OPERATOR = {
+  sets: "$set",
+  increments: "$inc"
+  // $currentDate	Sets the value of a field to current date, either as a Date or a Timestamp.
+  // $inc	Increments the value of the field by the specified amount.
+  // $min	Only updates the field if the specified value is less than the existing field value.
+  // $max	Only updates the field if the specified value is greater than the existing field value.
+  // $mul	Multiplies the value of the field by the specified amount.
+  // $rename	Renames a field.
+  // $set	Sets the value of a field in a document.
+  // $setOnInsert	Sets the value of a field if an update results in an insert of a document. Has no effect on update operations that modify existing documents.
+  // $unset	Removes the specified field from a document.
+}
+
 function MongoDB(MONGODB_PATH, DB_NAME) {
   this.MONGODB_PATH = MONGODB_PATH;
   this.DB_NAME = DB_NAME;
   this.COMPARISON_OPERATORS = COMPARISON_OPERATORS;
+  this.FIELD_UPDATE_OPERATOR = FIELD_UPDATE_OPERATOR;
   this.client = null;
 }
 
@@ -59,6 +74,18 @@ MongoDB.prototype.makeFilter = function (options) {
     }
   });
   return filter;
+};
+
+/**
+ * make update data
+ * @param options : [{operator, dataObject}]
+ */
+MongoDB.prototype.makeUpdateData = function (options) {
+  let updateData = {};
+  options.forEach(function (option) {
+    updateData[option.operator] = option.dataObject;
+  });
+  return updateData;
 };
 
 MongoDB.prototype.close = function () {
@@ -115,5 +142,95 @@ MongoDB.prototype.find = function (collection, filter) {
     });
   });
 };
+
+/**
+ * update data
+ * @param collection
+ * @param filter { "name" : "Pizza Rat's Pizzaria" }
+ * @param data { $inc: { "violations" : 3}, $set: { "Closed" : true } }
+ * @returns {Promise<any>}
+ */
+MongoDB.prototype.update = function (collection, filter, data) {
+  return new Promise((resolve, reject) => {
+    collection.update(filter, data, {multi: true}, function (err, result) {
+      if (err) {
+        console.log('err update', err);
+        reject(err);
+      } else {
+        console.log("update the following records");
+        console.log(result.result);
+        resolve(result.result);
+      }
+    });
+  });
+};
+
+/**
+ * upsert data
+ * @param collection
+ * @param filter { "name" : "Pizza Rat's Pizzaria" }
+ * @param data { $inc: { "violations" : 3}, $set: { "Closed" : true } }
+ * @returns {Promise<any>}
+ */
+MongoDB.prototype.upsert = function (collection, filter, data) {
+  return new Promise((resolve, reject) => {
+    collection.updateMany(filter, data, {multi: true, upsert: true}, function (err, result) {
+      if (err) {
+        console.log('err upsert', err);
+        reject(err);
+      } else {
+        console.log("upsert the following records");
+        console.log(result.result);
+        resolve(result.result);
+      }
+    });
+  });
+};
+
+//
+// MongoDB.prototype.replace = function (collection, data) {
+//     return new Promise((resolve, reject) => {
+//         collection.find(data).toArray(function (err, docs) {
+//             if (err) {
+//                 console.log('err find', err);
+//                 reject(err);
+//             } else {
+//                 console.log("Found the following records");
+//                 console.log(docs);
+//                 resolve(docs);
+//             }
+//         });
+//     });
+// };
+//
+// MongoDB.prototype.remove = function (collection, data) {
+//     return new Promise((resolve, reject) => {
+//         collection.find(data).toArray(function (err, docs) {
+//             if (err) {
+//                 console.log('err find', err);
+//                 reject(err);
+//             } else {
+//                 console.log("Found the following records");
+//                 console.log(docs);
+//                 resolve(docs);
+//             }
+//         });
+//     });
+// };
+//
+// MongoDB.prototype.count = function (collection, data) {
+//     return new Promise((resolve, reject) => {
+//         collection.find(data).toArray(function (err, docs) {
+//             if (err) {
+//                 console.log('err find', err);
+//                 reject(err);
+//             } else {
+//                 console.log("Found the following records");
+//                 console.log(docs);
+//                 resolve(docs);
+//             }
+//         });
+//     });
+// };
 
 module.exports = MongoDB;
