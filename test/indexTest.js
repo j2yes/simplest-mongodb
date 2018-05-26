@@ -17,7 +17,7 @@ describe('test mongodb', function () {
     const collection = await mongo.getCollection('devices');
     await mongo.insert(collection, [{type: "tv", price: 8873}, {
       type: "tablet",
-      price: 8581,
+      price: 85810,
       secondHand: {owner: "test"}
     }]);
   });
@@ -93,5 +93,33 @@ describe('test mongodb', function () {
     ];
     const updateData = mongo.makeUpdateData(updateDataOptions);
     const result = await mongo.upsert(collection, filter, updateData);
+  });
+
+  it('#test count', async function () {
+    const collection = await mongo.getCollection('devices');
+    const filterOptions = [
+      {
+        field: 'os',
+        value: 'android'
+      }
+    ];
+    const filter = await mongo.makeFilter(filterOptions);
+    const result = await mongo.count(collection, filter);
+  });
+
+  it('#test delete', async function () {
+    const collection = await mongo.getCollection('devices');
+    const filterOptions = [
+      {
+        field: 'type',
+        value: 'tv'
+      }
+    ];
+    const filter = await mongo.makeFilter(filterOptions);
+    const result = await mongo.remove(collection, filter);
+  });
+
+  it('#test close', async function () {
+    mongo.close();
   });
 });

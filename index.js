@@ -22,7 +22,7 @@ const FIELD_UPDATE_OPERATOR = {
   // $set	Sets the value of a field in a document.
   // $setOnInsert	Sets the value of a field if an update results in an insert of a document. Has no effect on update operations that modify existing documents.
   // $unset	Removes the specified field from a document.
-}
+};
 
 function MongoDB(MONGODB_PATH, DB_NAME) {
   this.MONGODB_PATH = MONGODB_PATH;
@@ -174,7 +174,7 @@ MongoDB.prototype.update = function (collection, filter, data) {
  */
 MongoDB.prototype.upsert = function (collection, filter, data) {
   return new Promise((resolve, reject) => {
-    collection.updateMany(filter, data, {multi: true, upsert: true}, function (err, result) {
+    collection.update(filter, data, {multi: true, upsert: true}, function (err, result) {
       if (err) {
         console.log('err upsert', err);
         reject(err);
@@ -187,50 +187,49 @@ MongoDB.prototype.upsert = function (collection, filter, data) {
   });
 };
 
-//
-// MongoDB.prototype.replace = function (collection, data) {
-//     return new Promise((resolve, reject) => {
-//         collection.find(data).toArray(function (err, docs) {
-//             if (err) {
-//                 console.log('err find', err);
-//                 reject(err);
-//             } else {
-//                 console.log("Found the following records");
-//                 console.log(docs);
-//                 resolve(docs);
-//             }
-//         });
-//     });
-// };
-//
-// MongoDB.prototype.remove = function (collection, data) {
-//     return new Promise((resolve, reject) => {
-//         collection.find(data).toArray(function (err, docs) {
-//             if (err) {
-//                 console.log('err find', err);
-//                 reject(err);
-//             } else {
-//                 console.log("Found the following records");
-//                 console.log(docs);
-//                 resolve(docs);
-//             }
-//         });
-//     });
-// };
-//
-// MongoDB.prototype.count = function (collection, data) {
-//     return new Promise((resolve, reject) => {
-//         collection.find(data).toArray(function (err, docs) {
-//             if (err) {
-//                 console.log('err find', err);
-//                 reject(err);
-//             } else {
-//                 console.log("Found the following records");
-//                 console.log(docs);
-//                 resolve(docs);
-//             }
-//         });
-//     });
-// };
+/**
+ * delete data
+ * @param collection
+ * @param filter
+ * @returns {Promise<any>}
+ */
+MongoDB.prototype.remove = function (collection, filter) {
+  if(Object.keys(filter).length === 0) {
+    throw new Error('filter must have items.')
+  }
+  return new Promise((resolve, reject) => {
+    collection.deleteMany(filter, function (err, result) {
+      if (err) {
+        console.log('err delete', err);
+        reject(err);
+      } else {
+        console.log("delete the following records");
+        console.log(result);
+        resolve(result);
+      }
+    });
+  });
+};
+
+/**
+ * count collection
+ * @param collection
+ * @param filter
+ * @returns {Promise<any>}
+ */
+MongoDB.prototype.count = function (collection, filter) {
+  return new Promise((resolve, reject) => {
+    collection.count(filter, function (err, docs) {
+      if (err) {
+        console.log('err count', err);
+        reject(err);
+      } else {
+        console.log("Count the following records");
+        console.log(docs);
+        resolve(docs);
+      }
+    });
+  });
+};
 
 module.exports = MongoDB;
